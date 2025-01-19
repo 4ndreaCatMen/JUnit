@@ -15,10 +15,16 @@ public class Gastos {
 
         // Identificar el concepto del gasto según el número ingresado
         switch (concepto) {
-            case 1 -> descripcion = "Vacaciones";
-            case 2 -> descripcion = "Alquiler";
-            case 3 -> descripcion = "Vicios";
-            default -> {
+            case 1:
+                descripcion = "Vacaciones";
+                break;
+            case 2:
+                descripcion = "Alquiler";
+                break;
+            case 3:
+                descripcion = "Vicios";
+                break;
+            default: {
                 // Si el concepto no es válido, mostrar mensaje y terminar el método
                 System.out.println("Concepto de gasto inválido.");
                 return;
