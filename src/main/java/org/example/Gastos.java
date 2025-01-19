@@ -4,7 +4,7 @@ package org.example;
 public class Gastos {
 
 
-    public static void addGasto(Usuarios user, int concepto, double cantidad) {
+    public static void agregarGasto(Usuarios usuario, int concepto, double cantidad) {
         // Verificar que la cantidad sea mayor a cero
         if (cantidad <= 0) {
             System.out.println("Error: La cantidad debe ser mayor a cero.");
@@ -26,7 +26,7 @@ public class Gastos {
         }
 
         // Obtener el saldo actual del usuario
-        double saldoActual = user.getSaldo();
+        double saldoActual = usuario.obtenerSaldo();
 
         // Verificar si el saldo es suficiente para realizar el gasto
         if (cantidad > saldoActual) {
@@ -36,10 +36,10 @@ public class Gastos {
         }
 
         // Si el saldo es suficiente, registrar el gasto
-        if (user.addGasto(cantidad)) {
+        if (usuario.agregarGasto(cantidad)) {
             // Mostrar mensaje de éxito y el saldo actual
             System.out.printf("Se ha realizado un gasto en: %s por un valor de %.2f.%n", descripcion, cantidad);
-            System.out.printf("Saldo actual: %.2f.%n", user.getSaldo());
+            System.out.printf("Saldo actual: %.2f.%n", usuario.obtenerSaldo());
         } else {
             // Si ocurre un error al registrar el gasto, mostrar mensaje
             System.out.println("No se pudo registrar el gasto.");

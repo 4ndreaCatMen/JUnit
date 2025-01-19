@@ -2,93 +2,83 @@ package org.example;
 
 import java.sql.*;
 
-// Esta clase maneja todo lo relacionado con la base de datos SQLite
+// Clase para manejar la base de datos SQLite
 public class BaseDatos {
 
-    // URL de nuestra base de datos SQLite
+    // URL de la base de datos SQLite
     private static final String DB_URL = "jdbc:sqlite:usuarios.db";
 
-    // Este bloque se ejecuta automáticamente la primera vez que usamos la clase
+    // Bloque estático que se ejecuta al cargar la clase y crea la tabla si no existe
     static {
-        try (Connection conn = DriverManager.getConnection(DB_URL); Statement stmt = conn.createStatement()) {
-            // Creamos la tabla "usuarios" si no existe
-            String createTable = "CREATE TABLE IF NOT EXISTS usuarios (" +
-                    "dni TEXT PRIMARY KEY, " + // El DNI será único y servirá como identificador
-                    "saldo REAL DEFAULT 0.0" + // El saldo empieza en 0.0 por defecto
-                    ");";
-            stmt.execute(createTable); // Ejecutamos el comando para crear la tabla
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement()) {
+            String createTable = "CREATE TABLE IF NOT EXISTS usuarios ("
+                    + "dni TEXT PRIMARY KEY, "
+                    + "saldo REAL DEFAULT 0.0)";
+            stmt.execute(createTable);
         } catch (SQLException e) {
-            // Por si algo sale mal al iniciar la base de datos
-            System.out.println("Error inicializando la base de datos: " + e.getMessage());
+            throw new RuntimeException("Error inicializando la base de datos", e);
         }
     }
 
-    // Comprueba si un usuario está en la base de datos usando su DNI
-    public static boolean authenticateUser(String dni) {
+    // Método para autenticar al usuario verificando si su DNI existe en la base de datos
+    public static boolean autenticarUsuario(String dni) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement pstmt = conn.prepareStatement("SELECT dni FROM usuarios WHERE dni = ?")) {
-            pstmt.setString(1, dni); // Pasamos el DNI al query
-            ResultSet rs = pstmt.executeQuery(); // Ejecutamos el query
-            return rs.next(); // Si devuelve algo, significa que el usuario existe
+            pstmt.setString(1, dni);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next(); // Devuelve true si se encuentra el usuario
         } catch (SQLException e) {
-            // Si algo falla durante la consulta
-            System.out.println("Error autenticando al usuario: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error autenticando al usuario", e);
         }
     }
 
-    // Verifica si un DNI tiene el formato correcto
-    public static boolean validateDNI(String dni) {
-        // El DNI debe tener 8 números seguidos de una letra
-        return dni.matches("\\d{8}[A-Za-z]");
+    // Método para validar que el formato del DNI es correcto (8 números + 1 letra)
+    public static boolean validarDNI(String dni) {
+        return dni.matches("\\d{8}[A-Z]"); // Se asegura de que la letra sea mayúscula
     }
 
-    // Registra un nuevo usuario en la base de datos
-    public static boolean registerUser(String dni) {
-        // Primero verificamos que el DNI tenga el formato correcto
-        if (!validateDNI(dni)) {
-            System.out.println("Error: El DNI debe tener 8 números seguidos de una letra. Ejemplo válido: 12345678A");
-            return false; // Si no es válido, no hacemos nada más
+    // Método para registrar un usuario nuevo en la base de datos
+    public static boolean registrarUsuario(String dni) {
+        if (!validarDNI(dni)) {
+            System.out.println("DNI incorrecto, inténtalo otra vez.");
+            return false;
         }
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement pstmt = conn.prepareStatement("INSERT INTO usuarios (dni, saldo) VALUES (?, 0.0)")) {
-            pstmt.setString(1, dni); // Pasamos el DNI
-            pstmt.executeUpdate(); // Guardamos al usuario en la base de datos
-            return true; // Todo salió bien
+            pstmt.setString(1, dni);
+            pstmt.executeUpdate(); // Inserta un nuevo usuario con saldo inicial en 0
+            return true;
         } catch (SQLException e) {
-            // Si no se pudo registrar al usuario
-            System.out.println("Error registrando al usuario: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Error registrando al usuario", e);
         }
     }
 
-    // Obtiene el saldo de un usuario usando su DNI
-    public static double getSaldo(String dni) {
+    // Método para obtener el saldo de un usuario a partir de su DNI
+    public static double obtenerSaldo(String dni) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement pstmt = conn.prepareStatement("SELECT saldo FROM usuarios WHERE dni = ?")) {
-            pstmt.setString(1, dni); // Pasamos el DNI al query
-            ResultSet rs = pstmt.executeQuery(); // Ejecutamos el query
+            pstmt.setString(1, dni);
+            ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getDouble("saldo"); // Si encontramos al usuario, devolvemos su saldo
+                return rs.getDouble("saldo"); // Devuelve el saldo si el usuario existe
             }
         } catch (SQLException e) {
-            // Si algo falla al buscar el saldo
-            System.out.println("Error obteniendo el saldo: " + e.getMessage());
+            throw new RuntimeException("Error para obtener el saldo", e);
         }
-        return 0.0; // Si no encontramos al usuario, devolvemos 0 como saldo por defecto
+        return 0.0; // Retorna saldo cero si no se encuentra el usuario
     }
 
-    // Actualiza el saldo de un usuario en la base de datos
-    public static void updateSaldo(String dni, double nuevoSaldo) {
+    // Método para actualizar el saldo de un usuario
+    public static void actualizarSaldo(String dni, double nuevoSaldo) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement pstmt = conn.prepareStatement("UPDATE usuarios SET saldo = ? WHERE dni = ?")) {
-            pstmt.setDouble(1, nuevoSaldo); // Le decimos cuál es el nuevo saldo
-            pstmt.setString(2, dni); // Y a qué usuario pertenece
-            pstmt.executeUpdate(); // Guardamos el cambio en la base de datos
+            pstmt.setDouble(1, nuevoSaldo);
+            pstmt.setString(2, dni);
+            pstmt.executeUpdate(); // Actualiza el saldo del usuario
         } catch (SQLException e) {
-            // Si algo falla mientras actualizamos el saldo
-            System.out.println("Error actualizando el saldo: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar el saldo", e);
         }
     }
 }

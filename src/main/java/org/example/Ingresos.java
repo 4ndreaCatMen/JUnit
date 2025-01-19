@@ -1,10 +1,8 @@
 package org.example;
 
-
 public class Ingresos {
 
-
-    public static void addIngreso(Usuarios usuarios, int concepto, double cantidad) {
+    public static void agregarIngreso(Usuarios usuario, int concepto, double cantidad) {
         String descripcion;
         double montoNeto = cantidad;
 
@@ -30,6 +28,6 @@ public class Ingresos {
         }
 
         // Actualizar el saldo del usuario con el monto neto calculado
-        usuarios.addIngreso(montoNeto);
+        usuario.agregarIngreso(montoNeto);
     }
 }
